@@ -1,4 +1,4 @@
-# Project Title
+# Behind the Painting
 
 
 ## Authors
