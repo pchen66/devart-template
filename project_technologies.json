@@ -4,13 +4,17 @@
             "insert apis"
         ],
         "platforms": [
-            "insert platforms"
+            "web"
         ],
         "toolkits": [
-            "insert toolkits"
+            "nodejs",
+            "socketio",
+            "threejs",
+            "webgl"
         ]
     },
     "themes": [
-        "insert themes"
+        "Art",
+        "New Perspective"
     ]
 }
