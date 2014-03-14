@@ -7,7 +7,9 @@ Behind the Painting
 - Samuel Zwaan, https://github.com/samzw
 
 ## Description
-Insert a description containing about 100 to 150 words, including your motivation and the meaning behind your idea and execution. The Judges will be keen to know how your idea pushes the boundaries of code and technology. 
+When confronted with the Mona Lisa or a Mondriaan painting, most people will immediately recognize it and at least have partly similar connotations. One such a connotation for instance is that Mondriaan paintings show somewhat of a city or city map. What if such connotations could be extended, what if other dimensions could be shown than just the 2D image that can be seen? This project suggests playing with such connotations, dimensions and perspectives in 3D.
+
+Jump into a Mondriaan painting and explore the city, look through the eyes of Mona Lisa to see what she saw all those years ago when Da Vinci painted her, or create your own painting and dive into its world. Technology such as the smart phone and Three.js provide ways to interactively explore the world behind the painting and lets viewers reflect and reconsider their initial interpretation of a painting.
 
 ## Link to Prototype
 NOTE: If your project lives online you can add one or more links here. Make sure you have a stable version of your project running before linking it.
