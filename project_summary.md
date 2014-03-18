@@ -1,6 +1,4 @@
-# Project Title
-Behind the Painting
-
+# Behind the Painting
 
 ## Authors
 - Po-Jui (Ray) Chen, https://github.com/pchen66
