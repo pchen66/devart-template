@@ -2,6 +2,5 @@ We always stand in front of an art piece, think about its meaning, and wonder wh
 
 ![Mona Lisa](/project_images/monalisa.jpg "Mona Lisa")
 
-![Mona Lisa](/project_images/mondrian.jpg "Mona Lisa")
+![Mondrian](/project_images/mondrian.jpg "Mondrian")
 
-https://www.youtube.com/watch?v=30yGOxJJ2PQ
