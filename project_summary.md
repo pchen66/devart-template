@@ -5,9 +5,11 @@
 - Samuel Zwaan, https://github.com/samzw
 
 ## Description
-When confronted with the Mona Lisa or a Mondriaan painting, most people will immediately recognize it and at least have partly similar connotations. One such a connotation for instance is that Mondriaan paintings show somewhat of a city or city map. What if such connotations could be extended, what if other dimensions could be shown than just the 2D image that can be seen? This project suggests playing with such connotations, dimensions and perspectives in 3D.
 
-Jump into a Mondriaan painting and explore the city, look through the eyes of Mona Lisa to see what she saw all those years ago when Da Vinci painted her, or create your own painting and dive into its world. Technology such as the smart phone and Three.js provide ways to interactively explore the world behind the painting and lets viewers reflect and reconsider their initial interpretation of a painting.
+When confronted a painting such as a Mondrian, most people will immediately recognize it and at least have partly similar connotations. One such a connotation for instance is that Mondrian paintings show somewhat of a city or city map. What if such connotations could be extended, what if other dimensions could be shown than just the 2D image that can be seen? This project suggests playing with such connotations, dimensions and perspectives in 3D.
+
+Jump into a Mondrian painting and explore the city, re-create it collaboratively and see your work exhibited on the fly in augmented reality. Technology such as the smart phone and Three.js provide ways to interactively explore the world behind the painting and lets viewers reflect, re-create and reconsider their initial interpretation of a painting.
+
 
 ## Link to Prototype
 NOTE: If your project lives online you can add one or more links here. Make sure you have a stable version of your project running before linking it.
