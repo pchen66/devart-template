@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>Behind The Painting</title>
+		<meta charset="utf-8">
+		<meta name="author" content="Ray Chen">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		
+		<link href='http://fonts.googleapis.com/css?family=Lato:400' rel='stylesheet' type='text/css'/>
+		<link href="css/style.css" rel='stylesheet' type='text/css'></link>
+		<link href="css/main.css" rel='stylesheet' type='text/css'></link>
+	</head>
+
+	<body>
+		
+		<script src="/socket.io/socket.io.js"></script>
+		
+		<div id="card">
+			<div id="cardMinimize">-</div>
+			<div id="cardTitle" class="cardtext"></div>
+			<div id="cardContent">			
+				<img id="cardPic"></img>
+				<div id="cardDescription" class="cardtext"></div>
+				<div id="savePainting" class="cardtext">Submit Your Mondrian</div>
+				<div id="showUserPaintings" class="cardtext">Gallery</div>
+			</div>
+		</div>
+		
+		<div id="rightButton" class="icon-arrow-right-alt1 naviIcon"></div>
+		<div id="leftButton" class="icon-arrow-left-alt1 naviIcon"></div>	
+		
+		<div id="blocker">
+			<div id="colorSquare"></div>
+			<div id="colorSquareText"></div>
+			<div id="instructions">
+				<span style="font-size:40px">Click to play, Esc to Stop</span>
+				<br />
+				(W, A, S, D = Move, SPACE = Jump, MOUSE = Look around)
+			</div>	
+			<div id="backToGallery">BACK</div>
+		</div>
+		
+		<div id="virtualGallery">
+			<div id="virtualGalleryExit">X</div>
+		</div>
+		
+		<script src="js/three.min.js"></script>
+
+		<script src="js/OBJLoader.js"></script>
+
+		<script src="js/Detector.js"></script>
+		<script src="js/tween.min.js"></script>
+		
+		<script src="js/controls/OrbitControls.js"></script>
+		<script src="js/controls/PointerLockControls.js"></script>
+		
+		<script src="js/Painting.js"></script>
+		
+		<script>
+			var socket = io.connect('http://localhost:5566');
+			socket.emit('identification', {role: 'newcomer'});
+			socket.on('initialData', function(data){
+				init(data);
+				animate();
+				
+				//Initial Camera View			
+				if( Paintings.length > 0 ){
+					TweenToCurrentPainting( distanceToPainting, 3000 );					
+				}
+			});
+			
+			socket.on('getUpdatedColor', function(data){
+				paintBuilding(data.index,data.color);
+			});
+			
+			socket.on('savedImageCallback', function(data){
+				alert('Saved '+data);
+			});
+
+			socket.on('userImages', function(data){
+				var dataSource = JSON.parse(data);
+				var gallery = document.getElementById('virtualGallery');
+				
+				//compare with old paintings
+				for(var i=1;i<gallery.children.length;i++){
+					for(var j=0;j<dataSource.length;j++){
+						if(gallery.children[i].src == dataSource[j]){
+							dataSource.splice(j, 1);
+						}							
+					}
+				}
+
+				//get new paintings
+				for(var i=dataSource.length-1;i>=0;i--){		
+					var pic = document.createElement('img');
+					pic.classList.add('thumbnail');
+					pic.src = dataSource[i];
+					gallery.insertBefore(pic, gallery.children[1]);
+				}
+			});
+		</script>
+
+		<script>
+
+			var container;
+
+			var camera, scene, renderer, clock, projector, raycaster;
+
+			var GalleryWidth = 1500, GalleryHeight = 700, GalleryDepth = 700;
+			var Paintings = [], mainScenePaintingIndex = 0, currentPaintingIndex = 0;
+			
+			var distanceToPainting = 300;
+			var isTweening = false;
+			
+			var WHITE = '0xffffff', YELLOW = '0xffcc00', RED = '0xfe0000', BLUE = '0x0f1176'; //WHITE = 0, YELLOW = 1, RED = 2, BLUE = 3
+			var DESC = [
+				['Piet Mondrian (1872-1944)','He evolved a non-representational form which he termed neoplasticism. This consisted of white ground, upon which was painted a grid of vertical and horizontal black lines and the three primary colors.','http://upload.wikimedia.org/wikipedia/commons/thumb/8/83/Piet_Mondriaan.jpg/240px-Piet_Mondriaan.jpg']	
+				,['De Stijl', 'Proponents of De Stijl advocated pure abstraction and universality by a reduction to the essentials of form and colour; they simplified visual compositions to the vertical and horizontal directions, and used only primary colors along with black and white.', 'http://upload.wikimedia.org/wikipedia/commons/thumb/0/00/Rietveld_chair_1.JPG/401px-Rietveld_chair_1.JPG']
+				,['Composition in Red, Blue, and Yellow',"Mondrian's paintings are not composed of perfectly flat planes of color, as one might expect. Brush strokes are evident throughout, although they are subtle, and the artist appears to have used different techniques for the various elements.",'http://upload.wikimedia.org/wikipedia/en/f/fe/Mondrian_Composition_II_in_Red%2C_Blue%2C_and_Yellow.jpg']
+			];
+			
+			function init(data) {
+
+				//fixed navi buttons
+				document.getElementById('rightButton').style.lineHeight = window.innerHeight+'px';
+				document.getElementById('leftButton').style.lineHeight = window.innerHeight+'px';
+			
+				container = document.createElement( 'div' );
+				document.body.appendChild( container );
+
+				camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 0.1, 20000 );
+				camera.position.set(0,0,700);
+
+				controls = new THREE.OrbitControls( camera );
+				controls.target = new THREE.Vector3(0,0,-1000);
+				controls.enabled = false;
+				controls.addEventListener( 'change', render );
+				
+				// scene
+				scene = new THREE.Scene();
+				
+				// gallery texture	
+				var wallTexture = THREE.ImageUtils.loadTexture('img/wall2.jpg');
+				wallTexture.wrapT = THREE.RepeatWrapping;
+				wallTexture.wrapS = THREE.RepeatWrapping;
+				wallTexture.repeat.set( 12, 4 );					
+				wallTexture.magFilter = THREE.NearestFilter;
+				wallTexture.minFilter = THREE.NearestFilter;
+				
+				// gallery
+				var galleryroom = new THREE.Mesh(new THREE.CubeGeometry(GalleryWidth,GalleryHeight,GalleryDepth), new THREE.MeshPhongMaterial({map: wallTexture, color: 0xffffff, ambient: 0xffffff, side: THREE.BackSide, specular: 0x777777, emissive: 0x797979}));
+				galleryroom.position.set(0,0,0);
+				scene.add( galleryroom );
+				
+				// paintings
+				var mondrian = new Painting( 400, 200 );
+				mondrian.firstPaintingSetup(data);
+				mondrian.canvas.position.set(-500,50,-GalleryDepth/2+1);
+				mondrian.canvas.material.materials[4].map = mondrian.renderTarget;	// Render Texture for Mondrian
+				scene.add( mondrian.canvas );		
+				Paintings.push( mondrian );	
+				
+				var mondrian2 = new Painting( 150, 230 );
+				mondrian2.canvas.position.set( 0,80,-GalleryDepth/2+1);
+				mondrian2.canvas.material.materials[4].map = mondrian2.renderTarget;	
+				scene.add( mondrian2.canvas );		
+				Paintings.push( mondrian2 );		
+
+				var mondrian3 = new Painting( 300, 200 );
+				mondrian3.canvas.position.set(300,-150,-GalleryDepth/2+1);
+				mondrian3.canvas.material.materials[4].map = mondrian3.renderTarget;	
+				scene.add( mondrian3.canvas );		
+				Paintings.push( mondrian3 );					
+				
+				// chair
+				var chairloader = new THREE.OBJLoader();
+				chairloader.load( 'model/chair.obj', function ( object ) {				
+					object.position.set(-GalleryWidth/2+150,-GalleryHeight/2,-GalleryDepth/2+150);
+					object.rotation.y = Math.PI/4;
+					object.scale.multiplyScalar(150);
+					object.children[0].material = new THREE.MeshLambertMaterial({map: mondrian.renderTarget});
+					scene.add(object);
+					
+					var light = new THREE.PointLight(0xffffff, 0.8, GalleryDepth);
+					light.position.set(-GalleryWidth/2+150,0, 0);
+					scene.add(light);			
+				});
+				
+				// bench
+				var benchloader = new THREE.OBJLoader();
+				benchloader.load('model/bench.obj', function( object ){			
+					object.position.set(0,-GalleryHeight/2,0);
+					object.scale.multiplyScalar(6);					
+					object.children[0].material = new THREE.MeshPhongMaterial({map: mondrian2.renderTarget});
+					scene.add(object);
+					
+					var light = new THREE.PointLight(0xffffff, 0.8, GalleryDepth);
+					light.position.set(0,0,GalleryDepth/2);
+					scene.add(light);
+				});
+				
+				//utilities
+				clock = new THREE.Clock();
+				projector = new THREE.Projector();
+				raycaster = new THREE.Raycaster();
+
+				//renderer
+				renderer = new THREE.WebGLRenderer({antialias: true});
+				renderer.setSize( window.innerWidth, window.innerHeight );
+				renderer.setClearColor( 0xffffff, 1);
+				container.appendChild( renderer.domElement );
+				
+				renderer.gammaInput = true;
+				renderer.gammaOutput = true;
+
+				//resize event
+				window.addEventListener( 'resize', onWindowResize, false );
+				
+				//UI controls
+				document.getElementById( 'rightButton' ).addEventListener( 'mouseover', onTriggerOver, false );
+				document.getElementById( 'leftButton' ).addEventListener( 'mouseover', onTriggerOver, false );
+				document.getElementById( 'rightButton' ).addEventListener( 'click', onNaviButton, false);
+				document.getElementById( 'leftButton' ).addEventListener( 'click', onNaviButton, false);
+				
+				//save painting
+				document.getElementById( 'savePainting' ).addEventListener( 'click', onSavePainting, false );
+				
+				//show user paintings
+				document.getElementById( 'showUserPaintings' ).addEventListener( 'click', onShowUserImages, false );
+				
+				//hide user paintings
+				document.getElementById( 'virtualGalleryExit' ).addEventListener( 'click', onHideUserImages, false );
+				
+				//minimize card
+				document.getElementById( 'cardMinimize' ).addEventListener( 'click', onCardSizeChange, false );
+				
+				//Select Event
+				renderer.domElement.addEventListener( 'click', onDocumentClick, false );
+				
+				//initial rendering for painting texture
+				updateRenderTexture();
+			}
+			
+			function onDocumentClick( event ){
+
+				event.preventDefault();
+				
+				if( Paintings[currentPaintingIndex].status === 'in' )
+					return;
+				
+				var vector = new THREE.Vector3( ( event.clientX / window.innerWidth ) * 2 - 1, - ( event.clientY / window.innerHeight ) * 2 + 1, 1 );
+				projector.unprojectVector( vector, camera );
+
+				raycaster.set( camera.position, vector.sub( camera.position ).normalize() );
+
+				var intersects = raycaster.intersectObjects( scene.children );
+
+				if ( intersects.length > 0 && intersects[ 0 ].object === Paintings[currentPaintingIndex].canvas && !isTweening ) {
+
+					if( intersects[ 0 ].object.name === 'Mondrian' ){
+			
+						new TWEEN.Tween( camera.position )
+						.to({x: intersects[ 0 ].object.position.x, y: intersects[ 0 ].object.position.y, z: intersects[ 0 ].object.position.z + 10}, 500)
+						.easing( TWEEN.Easing.Exponential.Out)
+						.onStart( function(){ 
+							showDescriptionCard(false);
+							controls.target = intersects[ 0 ].object.position.clone(); 
+							Paintings[mainScenePaintingIndex].initSceneStart();
+							Paintings[mainScenePaintingIndex].controls.getObject().position.x = Paintings[currentPaintingIndex].orthcamera.position.x;
+							Paintings[mainScenePaintingIndex].controls.getObject().position.z = Paintings[currentPaintingIndex].orthcamera.position.z;
+						})
+						.onUpdate( function(){ controls.update(); })
+						.start();
+					}
+				} 
+			}		
+				
+			function onBackToGallery(){
+				TweenToCurrentPainting( distanceToPainting );
+			}
+			
+			function onTriggerOver( event ){
+				
+				event.preventDefault();
+
+				this.style.opacity = 1;
+				this.addEventListener( 'mouseout', onTriggerOut, false );
+			}
+			
+			function onTriggerOut( event ){
+			
+				event.preventDefault();		
+				
+				this.style.opacity = 0;				
+				this.removeEventListener( 'mouseout', onTriggerOut, false );
+			}
+			
+			function onNaviButton(){	
+
+				if( currentPaintingIndex >= 0 && currentPaintingIndex < Paintings.length && !isTweening ){
+					
+					var viewNeedsUpdate = false;
+					if(this.id === 'rightButton' && currentPaintingIndex < Paintings.length-1 ) {currentPaintingIndex++; viewNeedsUpdate = true;}
+					else if(this.id === 'leftButton' && currentPaintingIndex > 0) {currentPaintingIndex--; viewNeedsUpdate = true;}
+					else{
+						new TWEEN.Tween( controls.target )
+						.to({x:0,y:0,z:-1000},1000)
+						.easing( TWEEN.Easing.Quadratic.In)
+						.onStart(function(){ 
+							isTweening = true; 
+							showDescriptionCard(false);
+							
+							new TWEEN.Tween( camera.position )
+							.to({x: 0, y: 0, z: 700}, 1500)
+							.easing( TWEEN.Easing.Quadratic.Out)
+							.onUpdate( function(){ controls.update(); })
+							.onComplete(function(){ isTweening = false; currentPaintingIndex = 1;} )
+							.start();
+							
+						})
+						.start();
+					}
+
+					if(!viewNeedsUpdate)
+						return;
+					
+					//tween camera to desired painting
+					TweenToCurrentPainting( distanceToPainting );			
+				}
+				
+			}
+			
+			function TweenToCurrentPainting( distance, delay ){
+				
+				delay = (delay === undefined) ? 0 : delay;
+				
+				new TWEEN.Tween( controls.target )
+				.to({x: Paintings[currentPaintingIndex].canvas.position.x, y: Paintings[currentPaintingIndex].canvas.position.y, z: Paintings[currentPaintingIndex].canvas.position.z}, 1000)
+				.easing( TWEEN.Easing.Quadratic.In)
+				.onStart(function(){ isTweening = true; showDescriptionCard(false);})
+				.onComplete( function(){
+					new TWEEN.Tween( camera.position )
+					.to({x: Paintings[currentPaintingIndex].canvas.position.x, y: Paintings[currentPaintingIndex].canvas.position.y, z: Paintings[currentPaintingIndex].canvas.position.z + distance}, 1500)
+					.easing( TWEEN.Easing.Quadratic.Out)
+					.onStart( function(){ controls.target = Paintings[currentPaintingIndex].canvas.position.clone();})
+					.onUpdate( function(){ controls.update(); })
+					.onComplete(function(){ isTweening = false; showDescriptionCard(true,DESC[currentPaintingIndex][0],DESC[currentPaintingIndex][1],DESC[currentPaintingIndex][2]);})
+					.start();
+				})
+				.onUpdate( function(){ controls.update(); })
+				.delay(delay)
+				.start();
+			}
+			
+			function showDescriptionCard(isVisible, title, desc, picUrl){
+			
+				title = (desc === undefined) ? '' : title;
+				desc = (desc === undefined) ? '' : desc;
+			
+				var card = document.getElementById('card'), 
+					cardContent = document.getElementById('cardContent');
+				if(isVisible){
+					card.style.opacity = 1;				
+					if(title && desc){
+						card.children[1].textContent = title;
+						cardContent.children[0].src = picUrl;
+						cardContent.children[1].textContent = desc;
+					}
+				}
+				else
+					card.style.opacity = 0;					
+			}
+			
+			function onCardSizeChange(){	
+				var cardContent = document.getElementById('cardContent'), 
+					cardMinimize = document.getElementById('cardMinimize');
+				if(cardContent.style.display != 'none'){
+					cardContent.style.display = 'none';
+					cardMinimize.textContent = '+';
+				}
+				else{
+					cardContent.style.display = 'inline';
+					cardMinimize.textContent = '-';
+				}		
+			}
+			
+			function onSavePainting(){
+				getRenderTexture(currentPaintingIndex);
+			}
+						
+			function updateRenderTexture(){
+				for(var i=0;i<Paintings.length;i++){
+					renderer.render( Paintings[mainScenePaintingIndex].scene, Paintings[i].orthcamera, Paintings[i].renderTarget, true );					
+				}
+			}
+			
+			function getRenderTexture(index){
+			
+				index = (index===undefined) ? 0 : index;
+			
+				renderer.setSize(Paintings[index].width, Paintings[index].height);
+				renderer.render( Paintings[mainScenePaintingIndex].scene, Paintings[index].orthcamera);
+				socket.emit('savedImage', renderer.domElement.toDataURL('image/png'));
+				renderer.setSize( window.innerWidth, window.innerHeight );
+			}
+			
+			function onShowUserImages(){
+				socket.emit('getImages');
+				document.getElementById('virtualGallery').style.display = 'inline';
+			}
+			
+			function onHideUserImages(){
+				document.getElementById('virtualGallery').style.display = 'none';
+			}
+			
+			function paintBuilding(startindex,cn){
+			
+				var color = getColorFromNumber(cn);
+			
+				for(var i=0;i<10;i++){
+					Paintings[mainScenePaintingIndex].target.children[0].geometry.faces[startindex+i].vertexColors[0].setHex(color);
+					Paintings[mainScenePaintingIndex].target.children[0].geometry.faces[startindex+i].vertexColors[1].setHex(color);
+					Paintings[mainScenePaintingIndex].target.children[0].geometry.faces[startindex+i].vertexColors[2].setHex(color);
+				}
+				Paintings[mainScenePaintingIndex].target.children[0].geometry.colorsNeedUpdate = true;
+				
+				if( Paintings[currentPaintingIndex].status !== 'in' ){
+					updateRenderTexture();
+				}
+			}
+			
+			function getColorFromNumber(colorNumber){
+				if(colorNumber === 0) return WHITE;
+				else if(colorNumber === 1) return YELLOW;
+				else if(colorNumber === 2) return RED;
+				else if(colorNumber === 3) return BLUE;
+			}
+
+			function onWindowResize() {
+
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
+				
+				if(Paintings[mainScenePaintingIndex]){
+					Paintings[mainScenePaintingIndex].camera.aspect = window.innerWidth / window.innerHeight;
+					Paintings[mainScenePaintingIndex].camera.updateProjectionMatrix();
+				}
+
+				renderer.setSize( window.innerWidth, window.innerHeight );
+
+			}
+
+			function animate() {
+
+				requestAnimationFrame( animate );
+				render();
+				TWEEN.update();
+			}
+
+			function render() {
+				
+				if( Paintings[currentPaintingIndex].status === 'in' ){
+					if( Paintings[mainScenePaintingIndex].controls.enabled ){
+						Paintings[mainScenePaintingIndex].time = Date.now();
+						Paintings[mainScenePaintingIndex].update();			
+					}	
+					renderer.render( Paintings[mainScenePaintingIndex].scene, Paintings[mainScenePaintingIndex].camera );
+					
+				}
+				else{
+					renderer.render( scene, camera );
+				}
+
+			}			
+
+		</script>
+
+	</body>
+</html>
