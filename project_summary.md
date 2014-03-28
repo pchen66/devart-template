@@ -16,7 +16,7 @@ Interactive Demo (require web browser supportng WebGL)
 
 [Behind The Painting](http://www.google.com "Behind The Painting")
 
-## Example Code
+## Code Snippet for Painting a Merged Cube
 
 ```
 function paintBuilding(startindex,cn){
