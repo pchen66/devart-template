@@ -6,7 +6,7 @@
             "getusermedia api"
         ],
         "platforms": [
-            "web"
+            "chrome apps"
         ],
         "toolkits": [
             "nodejs",
