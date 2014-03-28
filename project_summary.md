@@ -24,9 +24,9 @@ function paintBuilding(startindex,cn){
   var color = getColorFromNumber(cn);
   
   for(var i=0;i<10;i++){
-  	Paintings[mainScenePaintingIndex].target.children[0].geometry.faces[startindex+i].vertexColors[0].setHex(color);
-  	Paintings[mainScenePaintingIndex].target.children[0].geometry.faces[startindex+i].vertexColors[1].setHex(color);
-  	Paintings[mainScenePaintingIndex].target.children[0].geometry.faces[startindex+i].vertexColors[2].setHex(color);
+    Paintings[mainScenePaintingIndex].target.children[0].geometry.faces[startindex+i].vertexColors[0].setHex(color);
+    Paintings[mainScenePaintingIndex].target.children[0].geometry.faces[startindex+i].vertexColors[1].setHex(color);
+    Paintings[mainScenePaintingIndex].target.children[0].geometry.faces[startindex+i].vertexColors[2].setHex(color);
   }
   
   Paintings[mainScenePaintingIndex].target.children[0].geometry.colorsNeedUpdate = true;
