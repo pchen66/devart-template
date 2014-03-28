@@ -1,7 +1,9 @@
 {
     "technologies": {
         "apis": [
-            "g+"
+            "google plus",
+            "pointerlock api",
+            "getusermedia api"
         ],
         "platforms": [
             "web"
@@ -15,6 +17,8 @@
     },
     "themes": [
         "Art",
-        "New Perspective"
+        "New Perspective",
+        "3D",
+        "Primary Color"
     ]
 }
