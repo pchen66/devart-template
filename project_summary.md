@@ -14,7 +14,7 @@ Jump into a Mondrian painting and explore the city, re-create it collaboratively
 ## Link to Prototype
 Interactive Demo (require web browser supportng WebGL)
 
-[Behind The Painting](http://www.google.com "Behind The Painting")
+[Behind The Painting](http://devart-pojuichen.rhcloud.com "Behind The Painting")
 
 ## Code Snippet for Painting a Merged Cube
 
