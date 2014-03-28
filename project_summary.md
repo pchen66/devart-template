@@ -12,21 +12,34 @@ Jump into a Mondrian painting and explore the city, re-create it collaboratively
 
 
 ## Link to Prototype
-NOTE: If your project lives online you can add one or more links here. Make sure you have a stable version of your project running before linking it.
-
-[Example Link](http://www.google.com "Example Link")
+Interactive Demo (require web browser supportng WebGL)
+[Behind The Painting](http://www.google.com "Behind The Painting")
 
 ## Example Code
 NOTE: Wrap your code blocks or any code citation by using ``` like the example below.
 ```
-function test() {
-  console.log("Printing a test");
+function paintBuilding(startindex,cn){
+			
+  var color = getColorFromNumber(cn);
+  
+  for(var i=0;i<10;i++){
+  	Paintings[mainScenePaintingIndex].target.children[0].geometry.faces[startindex+i].vertexColors[0].setHex(color);
+  	Paintings[mainScenePaintingIndex].target.children[0].geometry.faces[startindex+i].vertexColors[1].setHex(color);
+  	Paintings[mainScenePaintingIndex].target.children[0].geometry.faces[startindex+i].vertexColors[2].setHex(color);
+  }
+  
+  Paintings[mainScenePaintingIndex].target.children[0].geometry.colorsNeedUpdate = true;
+  
+  if( Paintings[currentPaintingIndex].status !== 'in' ){
+  	updateRenderTexture();
+  }
 }
 ```
 ## Links to External Libraries
- NOTE: You can also use this space to link to external libraries or Github repositories you used on your project.
 
-[Example Link](http://www.google.com "Example Link")
+[Three.JS](https://github.com/mrdoob/three.js/ "Three.JS")
+[Node.JS](http://nodejs.org/ "Node.JS")
+[JSARToolKit](https://github.com/kig/JSARToolKit "JSARToolKit")
 
 ## Images & Videos
 
