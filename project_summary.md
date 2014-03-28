@@ -13,10 +13,11 @@ Jump into a Mondrian painting and explore the city, re-create it collaboratively
 
 ## Link to Prototype
 Interactive Demo (require web browser supportng WebGL)
+
 [Behind The Painting](http://www.google.com "Behind The Painting")
 
 ## Example Code
-NOTE: Wrap your code blocks or any code citation by using ``` like the example below.
+
 ```
 function paintBuilding(startindex,cn){
 			
@@ -38,7 +39,9 @@ function paintBuilding(startindex,cn){
 ## Links to External Libraries
 
 [Three.JS](https://github.com/mrdoob/three.js/ "Three.JS")
+
 [Node.JS](http://nodejs.org/ "Node.JS")
+
 [JSARToolKit](https://github.com/kig/JSARToolKit "JSARToolKit")
 
 ## Images & Videos
