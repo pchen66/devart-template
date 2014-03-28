@@ -1,4 +1,4 @@
-In the 3D city, over 10,000 cubes are rendered at the same time. If creating these cubes without optimization, it drops the frame rate dramastically from 60 to 5 which is impossible to walk in the city. We took the elegant [solution](http://learningthreejs.com/blog/2013/08/02/how-to-do-a-procedural-city-in-100lines/) which merges all separate geometries into one. That really helps a lot on running at 60fps. 
+In the 3D city, over 10,000 cubes are rendered at the same time. If we create these cubes without optimization, it drops the frame rate dramastically from 60 to 5 which is impossible to walk in the city. We took the elegant [solution](http://learningthreejs.com/blog/2013/08/02/how-to-do-a-procedural-city-in-100lines/) which merges all separate geometries into one. That really helps a lot on running at 60fps. 
 
 ![Real-time Collaborative update](/project_images/20140327_1.png "Real-time Collaborative update")
 
